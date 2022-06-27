@@ -32,6 +32,7 @@ typealias navigationFunc = () -> Unit
 
 var secretWordAnswer: MutableList<String> = mutableListOf()
 var attempt: Int = 0
+private val showDialog = mutableStateOf(false)
 
 @Composable
 fun MainScreenCompose(
@@ -108,14 +109,10 @@ fun ApplyWordButton(modifier: Modifier, checkWord: (String, Int) -> Int) {
 @Composable
 fun SurrenderButton(modifier: Modifier) {
     ButtonWithText(
-        modifier, text = stringResource(id = R.string.surrenderButton)
-    ) { }
-
-//    ShowEndGameDialog(
-//        isVictory = false,
-//        secretWord = mainScreenViewModel.currentSecretWord.value!!,
-//        mainScreenViewModel::startGame
-//    )
+        modifier = modifier,
+        text = stringResource(id = R.string.surrenderButton),
+        onClick = { showDialog.value = true }
+    )
 }
 
 @Composable
@@ -146,6 +143,21 @@ fun GamePlate(
                 secretWord = currentSecretWord.value!!,
                 startNewGame = { startNewGame() },
                 closeApp = { closeApp() })
+        }
+
+        if (showDialog.value) {
+            ShowEndGameDialog(
+                isVictory = false,
+                secretWord = currentSecretWord.value!!,
+                startNewGame = {
+                    showDialog.value = false
+                    startNewGame()
+                },
+                closeApp = {
+                    showDialog.value = false
+                    closeApp()
+                })
+
         }
 
         secretWordAnswer = currentSecretWord.value!!.map { "*" } as MutableList<String>
@@ -205,7 +217,6 @@ fun ShowEndGameDialog(
                     secretWord = secretWord,
                     startNewGame = { startNewGame() },
                     closeDialog = { closeApp() })
-//                    closeDialog = { openDialog.value = false })
             }
         )
     }
