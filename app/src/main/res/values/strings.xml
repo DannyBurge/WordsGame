@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">WordsGame</string>
+
+    <!--Buttons texts-->
+    <string name="applySettingsButton">Применить</string>
+    <string name="settingsButton">Настройки</string>
+    <string name="applyWordButton">Проверить</string>
+    <string name="surrenderButton">Сдаться</string>
+
+    <string name="victoryTitle">Победа</string>
+    <string name="loseTitle">Поражение</string>
+    <string name="startNewGame">Новая игра</string>
+    <string name="closeDialog">Выход</string>
+</resources>

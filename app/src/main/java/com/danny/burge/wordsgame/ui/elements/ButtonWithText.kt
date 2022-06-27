@@ -1,0 +1,18 @@
+package com.danny.burge.wordsgame.ui.elements
+
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+
+@Composable
+fun ButtonWithText(modifier: Modifier, text: String, onClick: () -> Unit) {
+    Button(
+        modifier = modifier.wrapContentSize(Alignment.Center),
+        onClick = { onClick() }
+    ) {
+        Text(text = text)
+    }
+}

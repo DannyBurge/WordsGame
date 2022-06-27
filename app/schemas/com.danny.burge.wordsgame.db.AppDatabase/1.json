@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "c93047cdc090429b9c8074fc0057074c",
+    "entities": [
+      {
+        "tableName": "words_db",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`word_letters` TEXT NOT NULL, `word_size` INTEGER NOT NULL, PRIMARY KEY(`word_letters`))",
+        "fields": [
+          {
+            "fieldPath": "word_letters",
+            "columnName": "word_letters",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "word_size",
+            "columnName": "word_size",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "word_letters"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c93047cdc090429b9c8074fc0057074c')"
+    ]
+  }
+}
