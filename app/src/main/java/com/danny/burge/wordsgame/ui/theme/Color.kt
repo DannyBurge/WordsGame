@@ -10,10 +10,15 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val LetterOnSpotColor = Color(0xFF66BB6A)
-val LetterInWordColor = Color(0xFFFFEE58)
+val WordGamePrimaryColor = Color(0xFF535353)
+
+val LetterOnSpotColor = Color(0xFFDCEDC8)
+val LetterInWordColor = Color(0xFFFFECB3)
 val LetterColor = Color(0xFFFFFFFF)
 
 val LetterOnSpotColorBlocked = Color(0xFFA5D6A7)
 val LetterInWordColorBlocked = Color(0xFFFFF59D)
-val LetterColorBlocked = Color(0xFFE0F2F1)
+val LetterColorBlocked = Color(0x99FFFFFF)
+
+val BackgroundOnSelectedRow = Color(0x40000000)
+val LetterSelectedBackgroundColor = Color(0xFFFF9696)

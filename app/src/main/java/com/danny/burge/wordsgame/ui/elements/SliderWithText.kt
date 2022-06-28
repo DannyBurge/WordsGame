@@ -2,6 +2,7 @@ package com.danny.burge.wordsgame.ui.elements
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -13,7 +14,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SliderWithTextValue(modifier: Modifier, defaultValue: Int, onValueChanged: () -> Unit): Float {
     var sliderPosition by remember { mutableStateOf(defaultValue.toFloat()) }
-    Surface(modifier = modifier) {
+    Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
         Text(
             modifier = Modifier
                 .fillMaxWidth(),

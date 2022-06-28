@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.danny.burge.wordsgame.WordsGameApp
 import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
-import com.danny.burge.wordsgame.constants.LETTER_FULL_OPEN
+import com.danny.burge.wordsgame.constants.LETTER_ON_SPOT_CODE
 import com.danny.burge.wordsgame.database.models.Word
 import com.danny.burge.wordsgame.ui.model.Answer
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class MainScreenViewModel : ViewModel() {
 
-    lateinit var wordsDataBase: List<Word>
+    private lateinit var wordsDataBase: List<Word>
 
     private val _currentSecretWord = MutableLiveData<String?>()
     val currentSecretWord: LiveData<String?> get() = _currentSecretWord
@@ -72,7 +72,7 @@ class MainScreenViewModel : ViewModel() {
         valueToPost[attempt].apply {
             word = wordForCheck
             colorMask = wordMask
-            isCompletelyOpen = wordMask.minOrNull() == LETTER_FULL_OPEN
+            isCompletelyOpen = wordMask.minOrNull() == LETTER_ON_SPOT_CODE
         }
 
         _answers.value!!.clear()

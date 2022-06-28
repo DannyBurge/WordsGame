@@ -19,6 +19,7 @@ class SettingsScreenViewModel(private val context: Context) : ViewModel() {
         Log.d(DEBUG_LOG_TAG, "onGameSettingsChanged")
         WordsGameApp.gameDifficulty = gameDifficulty
         WordsGameApp.attemptNumber = attemptNumber
+        saveSettings()
     }
 
     fun onAppClosed() {

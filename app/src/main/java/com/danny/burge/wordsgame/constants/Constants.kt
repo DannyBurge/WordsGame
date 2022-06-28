@@ -21,7 +21,9 @@ Integer constants
 */
 const val DIFFICULTY_DEFAULT = 5
 const val ATTEMPT_NUMBER_DEFAULT = DIFFICULTY_DEFAULT
-const val LETTER_FULL_OPEN = 2
+const val LETTER_ON_SPOT_CODE = 2
+const val LETTER_IN_WORD_CODE = 1
+const val LETTER_NOT_IN_WORD_CODE = 0
 /*
 Alias constants
 */
