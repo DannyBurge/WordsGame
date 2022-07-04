@@ -12,7 +12,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SliderWithTextValue(modifier: Modifier, defaultValue: Int, onValueChanged: () -> Unit): Float {
+fun SliderWithTextValue(
+    modifier: Modifier,
+    range: ClosedFloatingPointRange<Float>,
+    defaultValue: Int,
+    onValueChanged: () -> Unit
+): Float {
     var sliderPosition by remember { mutableStateOf(defaultValue.toFloat()) }
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
         Text(
@@ -26,8 +31,8 @@ fun SliderWithTextValue(modifier: Modifier, defaultValue: Int, onValueChanged: (
                 .padding(16.dp)
                 .fillMaxWidth(),
             value = sliderPosition,
-            valueRange = 3f..7f,
-            steps = 3,
+            valueRange = range,
+            steps = (range.endInclusive - range.start -1F).toInt(),
             onValueChange = {
                 onValueChanged()
                 sliderPosition = it

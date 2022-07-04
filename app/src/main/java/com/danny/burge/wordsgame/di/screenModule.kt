@@ -8,6 +8,6 @@ import org.koin.dsl.module
 
 val screenModule = module {
     viewModel { MainActivityViewModel() }
-    viewModel { MainScreenViewModel() }
+    viewModel { MainScreenViewModel(networkRepository = get()) }
     viewModel { SettingsScreenViewModel(context = get()) }
 }

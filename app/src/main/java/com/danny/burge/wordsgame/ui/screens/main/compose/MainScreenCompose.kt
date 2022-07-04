@@ -1,223 +1,263 @@
 package com.danny.burge.wordsgame.ui.screens.main.compose
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.LiveData
+import androidx.constraintlayout.compose.Dimension
 import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.constants.*
+import com.danny.burge.wordsgame.extention.advancedShadow
+import com.danny.burge.wordsgame.ui.elements.ButtonWithImage
 import com.danny.burge.wordsgame.ui.elements.ButtonWithText
-import com.danny.burge.wordsgame.ui.elements.EndGameDialog
-import com.danny.burge.wordsgame.ui.elements.LetterBox
-import com.danny.burge.wordsgame.ui.model.Answer
+import com.danny.burge.wordsgame.ui.elements.keyboard.WordsGameKeyboard
+import com.danny.burge.wordsgame.ui.elements.letter.grid.LetterGrid
+import com.danny.burge.wordsgame.ui.theme.shapeBigTopCornerRadius
+import com.danny.burge.wordsgame.utils.getBlankString
 
-typealias navigationFunc = () -> Unit
-
-var secretWordAnswer: MutableList<String> = mutableListOf()
-var attempt: Int = 0
-private val showDialog = mutableStateOf(false)
+var cellIndex = 0
 
 @Composable
 fun MainScreenCompose(
-    liveDataAnswers: LiveData<MutableList<Answer>?>,
-    liveDataSecretWord: LiveData<String?>,
-    navigateToToSettings: navigationFunc,
-    checkWord: (String, Int) -> Int,
+    navigateToToSettings: NavigationFunc,
+    checkWord: (String) -> Unit,
     startNewGame: () -> Unit,
     closeApp: () -> Unit
 ) {
+    // for Keyboard
+    val lettersOnSpot = remember { mutableStateListOf<String>() }
+    val lettersInWord = remember { mutableStateListOf<String>() }
+    val lettersNotInWord = remember { mutableStateListOf<String>() }
+
+    val secretWordAnswerState = remember { getBlankString().toMutableStateList() }
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        val (settingsButton, gamePlate, applyButton, surrenderButton) = createRefs()
-        SettingsButton(
-            Modifier
-                .padding(4.dp)
-                .wrapContentSize()
-                .constrainAs(settingsButton) {
-                    end.linkTo(parent.end)
+        val (
+            topAppBarRef,
+            gamePlateRef,
+            controlPanelRef
+        ) = createRefs()
+        TopAppBar(
+            modifier = Modifier
+                .constrainAs(topAppBarRef) {
                     top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    height = Dimension.fillToConstraints
                 },
-            navigateToToSettings
+            navigateToToSettings = navigateToToSettings
         )
-        GamePlate(
+
+        LetterGrid(
             Modifier
                 .fillMaxWidth()
-                .constrainAs(gamePlate) {
+                .constrainAs(gamePlateRef) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(settingsButton.bottom)
-                    bottom.linkTo(applyButton.top)
+                    top.linkTo(topAppBarRef.bottom)
+                    bottom.linkTo(controlPanelRef.top)
+                    height = Dimension.fillToConstraints
                 },
-            liveDataAnswers,
-            liveDataSecretWord,
-            startNewGame = { startNewGame() }
-        ) { closeApp() }
-        ApplyWordButton(
-            Modifier
-                .padding(4.dp)
-                .wrapContentSize()
-                .constrainAs(applyButton) {
-                    start.linkTo(surrenderButton.end)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-            checkWord
+            onCellClick = {
+                cellIndex = it
+
+            },
+            startNewGame = {
+                startNewGame()
+                lettersOnSpot.clear()
+                lettersInWord.clear()
+                lettersNotInWord.clear()
+            },
+            closeApp = closeApp,
+            secretWordAnswer = secretWordAnswerState
         )
-        SurrenderButton(
-            Modifier
-                .padding(4.dp)
-                .wrapContentSize()
-                .constrainAs(surrenderButton) {
+
+        BottomControlPanel(
+            modifier = Modifier
+                .constrainAs(controlPanelRef) {
                     start.linkTo(parent.start)
-                    end.linkTo(applyButton.start)
+                    end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
                 }
+                .wrapContentHeight(),
+            lettersOnSpot = lettersOnSpot,
+            lettersInWord = lettersInWord,
+            lettersNotInWord = lettersNotInWord,
+            checkWord = {
+                checkWord(secretWordAnswerState.joinToString("").lowercase())
+                secretWordAnswerState.clear()
+                secretWordAnswerState.addAll(getBlankString().toMutableStateList())
+
+                with(WordsGameApp.state) {
+
+                    val currentAnswer = answers[attempt.value]
+
+                    currentAnswer.word.filterIndexed { index, _ ->
+                        currentAnswer.colorMask[index] == LETTER_ON_SPOT_CODE
+                    }.forEach { letter ->
+                        if (letter.toString() !in lettersOnSpot) {
+                            lettersOnSpot.add(letter.toString())
+                        }
+                    }
+
+                    currentAnswer.word.filterIndexed { index, _ ->
+                        currentAnswer.colorMask[index] == LETTER_IN_WORD_CODE
+                    }.forEach { letter ->
+                        if (letter.toString() !in lettersOnSpot &&
+                            letter.toString() !in lettersInWord
+                        ) {
+                            lettersInWord.add(letter.toString())
+                        }
+                    }
+
+                    currentAnswer.word.filterIndexed { index, _ ->
+                        currentAnswer.colorMask[index] == LETTER_NOT_IN_WORD_CODE
+                    }.forEach { letter ->
+                        if (letter.toString() !in lettersOnSpot &&
+                            letter.toString() !in lettersInWord &&
+                            letter.toString() !in lettersNotInWord
+                        ) {
+                            lettersNotInWord.add(letter.toString())
+                        }
+                    }
+
+                    attempt.value++
+                }
+                Log.d(DEBUG_LOG_TAG, "${secretWordAnswerState.toList()}")
+            },
+            changeLetter = { index, letter ->
+                secretWordAnswerState[index] = letter
+            }
         )
     }
 }
 
 @Composable
-fun SettingsButton(modifier: Modifier, goToSettings: navigationFunc) {
-    ButtonWithText(modifier, text = stringResource(id = R.string.settingsButton), goToSettings)
+private fun BottomControlPanel(
+    modifier: Modifier,
+    lettersOnSpot: List<String>,
+    lettersInWord: List<String>,
+    lettersNotInWord: List<String>,
+    checkWord: () -> Unit,
+    changeLetter: (Int, String) -> Unit
+) {
+    Column(
+        modifier = modifier
+            .advancedShadow(
+                cornersRadius = 16.dp,
+                alpha = 0.5F,
+                shadowBlurRadius = 8.dp,
+                offsetY = (-1).dp,
+            )
+            .background(
+                color = MaterialTheme.colorScheme.background,
+                shape = shapeBigTopCornerRadius
+            )
+    ) {
+        WordsGameKeyboard(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .padding(horizontal = 16.dp),
+            lettersOnSpot = lettersOnSpot,
+            lettersInWord = lettersInWord,
+            lettersNotInWord = lettersNotInWord,
+            onKeyClick = {
+                changeLetter(cellIndex, it)
+            },
+        )
+        BottomButtonRow(
+            modifier = Modifier.padding(16.dp),
+            checkWord = checkWord
+        )
+    }
 }
 
 @Composable
-fun ApplyWordButton(modifier: Modifier, checkWord: (String, Int) -> Int) {
+private fun BottomButtonRow(
+    modifier: Modifier = Modifier,
+    checkWord: () -> Unit,
+) {
+    Row(modifier = modifier) {
+        SurrenderButton(
+            modifier = Modifier
+                .weight(1F)
+                .padding(end = 8.dp),
+        )
+
+        ApplyWordButton(
+            modifier = Modifier
+                .weight(1F)
+                .padding(start = 8.dp),
+            checkWord = checkWord
+        )
+
+    }
+}
+
+@Composable
+private fun TopAppBar(modifier: Modifier, navigateToToSettings: NavigationFunc) {
+    Box(
+        modifier = modifier
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .advancedShadow(
+                alpha = 0.5F,
+                shadowBlurRadius = 8.dp,
+                offsetY = 1.dp,
+            )
+            .background(color = MaterialTheme.colorScheme.onBackground)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .wrapContentWidth(Alignment.Start)
+                .padding(16.dp),
+            text = "Words Game".uppercase()
+        )
+
+        SettingsButton(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.End)
+                .padding(8.dp),
+            navigateToToSettings
+        )
+    }
+}
+
+@Composable
+private fun SettingsButton(modifier: Modifier, goToSettings: NavigationFunc) {
+    ButtonWithImage(modifier = modifier, onClick = goToSettings)
+}
+
+@Composable
+private fun ApplyWordButton(modifier: Modifier, checkWord: () -> Unit) {
     ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton))
-    { attempt = checkWord(secretWordAnswer.joinToString(""), attempt) }
+    {
+        checkWord()
+    }
 }
 
 @Composable
-fun SurrenderButton(modifier: Modifier) {
+private fun SurrenderButton(modifier: Modifier) {
     ButtonWithText(
         modifier = modifier,
         text = stringResource(id = R.string.surrenderButton),
-        onClick = { showDialog.value = true }
+        onClick = { WordsGameApp.state.attempt.value = WordsGameApp.attemptNumber + 1 }
     )
-}
-
-@Composable
-fun GamePlate(
-    modifier: Modifier,
-    liveDataAnswers: LiveData<MutableList<Answer>?>,
-    liveDataSecretWord: LiveData<String?>,
-    startNewGame: () -> Unit,
-    closeApp: () -> Unit
-) {
-    val answers = liveDataAnswers.observeAsState()
-    val currentSecretWord = liveDataSecretWord.observeAsState()
-
-    if (!currentSecretWord.value.isNullOrEmpty()) {
-
-        // Check last answer if it is correct and show win dialog
-        if (attempt > 0 && answers.value!!.last { it.word.isNotBlank() }.isCompletelyOpen) {
-            ShowEndGameDialog(
-                isVictory = true,
-                secretWord = currentSecretWord.value!!,
-                startNewGame = { startNewGame() },
-                closeApp = { closeApp() })
-        }
-        // Check attempt number if it is all of them and show lose dialog
-        if (attempt == WordsGameApp.gameDifficulty) {
-            ShowEndGameDialog(
-                isVictory = false,
-                secretWord = currentSecretWord.value!!,
-                startNewGame = { startNewGame() },
-                closeApp = { closeApp() })
-        }
-
-        if (showDialog.value) {
-            ShowEndGameDialog(
-                isVictory = false,
-                secretWord = currentSecretWord.value!!,
-                startNewGame = {
-                    showDialog.value = false
-                    startNewGame()
-                },
-                closeApp = {
-                    showDialog.value = false
-                    closeApp()
-                })
-
-        }
-
-        secretWordAnswer = currentSecretWord.value!!.map { "*" } as MutableList<String>
-
-        val columnItems = (0 until WordsGameApp.attemptNumber).map { answers.value!![it] to it }
-        LazyColumn(modifier = modifier.fillMaxWidth()) {
-            items(items = columnItems) { item ->
-                LetterRow(
-                    modifier = modifier,
-                    rowLength = secretWordAnswer.size,
-                    checkedWord = item.first,
-                    isBlocked = item.second != attempt
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun LetterRow(modifier: Modifier, rowLength: Int, checkedWord: Answer?, isBlocked: Boolean) {
-    LazyRow(
-        modifier = modifier
-            .wrapContentSize()
-            .padding(if (!isBlocked) 4.dp else 0.dp)
-            .border(BorderStroke(1.dp, color = if (!isBlocked) Black else Color.Transparent))
-            .padding(if (!isBlocked) 4.dp else 1.dp)
-    ) {
-        val rowItems = (0 until rowLength).map { index ->
-            (checkedWord?.word?.get(index) ?: " ").toString() to index
-        }
-        items(items = rowItems) {
-            val index = it.second
-            val letter = (checkedWord?.word?.get(index) ?: " ").toString()
-            val backgroundColorCode = checkedWord?.colorMask?.get(index) ?: 0
-
-            LetterBox(letter, isBlocked, index, backgroundColorCode)
-        }
-    }
-}
-
-
-@Composable
-fun ShowEndGameDialog(
-    isVictory: Boolean,
-    secretWord: String,
-    startNewGame: () -> Unit,
-    closeApp: () -> Unit
-) {
-    val openDialog = remember { mutableStateOf(true) }
-
-    if (openDialog.value) {
-        Dialog(
-            onDismissRequest = { /*TODO*/ },
-            content = {
-                EndGameDialog(
-                    isVictory = isVictory,
-                    secretWord = secretWord,
-                    startNewGame = { startNewGame() },
-                    closeDialog = { closeApp() })
-            }
-        )
-    }
 }

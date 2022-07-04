@@ -1,6 +1,7 @@
 package com.danny.burge.wordsgame
 
 import android.app.Application
+import androidx.compose.runtime.mutableStateOf
 import androidx.room.Room
 import com.danny.burge.wordsgame.constants.ATTEMPT_NUMBER_DEFAULT
 import com.danny.burge.wordsgame.constants.DIFFICULTY_DEFAULT
@@ -35,5 +36,7 @@ class WordsGameApp : Application() {
         var wordsDatabase: WordsDatabase? = null
         var gameDifficulty: Int = DIFFICULTY_DEFAULT
         var attemptNumber: Int = ATTEMPT_NUMBER_DEFAULT
+
+        var state = AppState()
     }
 }

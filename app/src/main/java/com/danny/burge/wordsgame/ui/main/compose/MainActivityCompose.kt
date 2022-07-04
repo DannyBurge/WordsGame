@@ -32,8 +32,6 @@ fun GameUI(
         NavHost(navController = navController, startDestination = MAIN_SCREEN) {
             composable(MAIN_SCREEN) {
                 MainScreenCompose(
-                    liveDataAnswers = mainScreenViewModel.answers,
-                    liveDataSecretWord = mainScreenViewModel.currentSecretWord,
                     navigateToToSettings = goToSettings,
                     startNewGame = { startNewGame() },
                     closeApp = { closeApp() },

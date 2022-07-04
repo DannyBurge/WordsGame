@@ -10,7 +10,6 @@ import com.danny.burge.wordsgame.constants.MAIN_SCREEN
 import com.danny.burge.wordsgame.constants.SETTINGS_SCREEN
 import com.danny.burge.wordsgame.ui.main.compose.GameUI
 import com.danny.burge.wordsgame.ui.screens.main.MainScreenViewModel
-import com.danny.burge.wordsgame.ui.screens.main.compose.attempt
 import com.danny.burge.wordsgame.ui.screens.settings.SettingsScreenViewModel
 import com.danny.burge.wordsgame.ui.theme.WordsGameTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -43,7 +42,6 @@ class MainActivity : ComponentActivity() {
 
     private fun startGame() {
         Log.d(DEBUG_LOG_TAG, "startGame")
-        attempt = 0
         mainScreenViewModel.startGame()
     }
 

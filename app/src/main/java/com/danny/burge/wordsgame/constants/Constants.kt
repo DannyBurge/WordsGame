@@ -13,6 +13,8 @@ const val SETTINGS_FILE_NAME = "settingsFile"
 const val DIFFICULTY_VALUE = "difficultyValue"
 const val ATTEMPT_VALUE = "attemptValue"
 
+const val WIKIPEDIA_URL = "https://ru.wikipedia.org/w/"
+
 // Tags
 const val DEBUG_LOG_TAG = "WordsGameDebugTag"
 

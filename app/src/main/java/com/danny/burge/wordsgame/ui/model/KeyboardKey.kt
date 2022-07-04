@@ -2,7 +2,7 @@ package com.danny.burge.wordsgame.ui.model
 
 data class KeyboardKey(
     val label: String,
-    val onSpot: Boolean? = null,
-    val inWord: Boolean? = null,
-    val notInWord: Boolean? = null
+    var onSpot: Boolean = false,
+    var inWord: Boolean = false,
+    var notInWord: Boolean = false,
 )

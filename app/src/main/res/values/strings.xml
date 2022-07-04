@@ -7,8 +7,8 @@
     <string name="applyWordButton">Проверить</string>
     <string name="surrenderButton">Сдаться</string>
 
-    <string name="victoryTitle">Победа</string>
-    <string name="loseTitle">Поражение</string>
+    <string name="victoryTitle">ПОБЕДА</string>
+    <string name="loseTitle">ПОРАЖЕНИЕ</string>
     <string name="startNewGame">Новая игра</string>
     <string name="closeDialog">Выход</string>
 </resources>
