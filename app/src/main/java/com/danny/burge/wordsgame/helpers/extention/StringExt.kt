@@ -1,4 +1,4 @@
-package com.danny.burge.wordsgame.extention
+package com.danny.burge.wordsgame.helpers.extention
 
 fun String.replaceAt(index: Int, value: String): String {
     val len = this.length

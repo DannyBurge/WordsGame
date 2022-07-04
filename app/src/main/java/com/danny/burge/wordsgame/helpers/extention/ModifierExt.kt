@@ -1,4 +1,4 @@
-package com.danny.burge.wordsgame.extention
+package com.danny.burge.wordsgame.helpers.extention
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind

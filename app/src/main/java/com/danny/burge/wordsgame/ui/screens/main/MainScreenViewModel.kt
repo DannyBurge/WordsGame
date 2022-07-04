@@ -4,13 +4,13 @@ import android.util.Log
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.danny.burge.wordsgame.AppState
-import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
-import com.danny.burge.wordsgame.constants.LETTER_ON_SPOT_CODE
 import com.danny.burge.wordsgame.database.models.Word
+import com.danny.burge.wordsgame.helpers.extention.replaceAt
 import com.danny.burge.wordsgame.interaction.NetworkRepository
 import com.danny.burge.wordsgame.ui.model.Answer
+import com.danny.burge.wordsgame.ui.model.ColorMask
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -20,8 +20,8 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
     private lateinit var wordsDataBase: List<Word>
 
     fun startGame() {
-        WordsGameApp.state = AppState()
-        getRandomWordByLength(WordsGameApp.gameDifficulty)
+        WordsGameApp.state.clear()
+        getRandomWordByLength(WordsGameApp.settings.gameDifficulty)
     }
 
 
@@ -57,41 +57,48 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
     }
 
 
-    fun checkWord(secretWordAnswer: String) {
+    fun checkWord(secretWordAnswer: String): Boolean {
         with(WordsGameApp.state) {
-            if (secretWordAnswer !in wordsDataBase.map { it.word_letters }) return
-
-            val wordMask = getWordMask(secretWordAnswer)
-            answers.add(
-                Answer(
-                    attempt = attempt.value,
-                    word = secretWordAnswer,
-                    colorMask = wordMask,
-                    isCompletelyOpen = wordMask.minOrNull() == LETTER_ON_SPOT_CODE
+            if (secretWordAnswer in wordsDataBase.map { it.word_letters }) {
+                val wordMask = getWordMask(secretWordAnswer)
+                val isCompletelyOpen = wordMask.all { it == ColorMask.LETTER_ON_SPOT }
+                Log.d(DEBUG_LOG_TAG, "isCompletelyOpen is $isCompletelyOpen")
+                answers.add(
+                    Answer(
+                        attempt = attempt.value,
+                        word = secretWordAnswer,
+                        colorMask = wordMask,
+                        isCompletelyOpen = isCompletelyOpen
+                    )
                 )
-            )
+                return true
+            } else {
+                //TODO Реакция на слово, которого нет в словаре (пока краш)}
+                return false
+            }
         }
     }
 
-    private fun getWordMask(word: String): MutableList<Int> {
+    private fun getWordMask(word: String): MutableList<ColorMask> {
         Log.d(DEBUG_LOG_TAG, "getWordMask")
-        val resultMask = word.map { 0 }.toMutableList()
+        val resultMask = word.map { ColorMask.LETTER_NOT_IN_WORD }.toMutableList()
         var tmpWord = word
         var tmpAnswer = WordsGameApp.state.secretWord.value.word_letters
         tmpWord.forEachIndexed { index, letter ->
             if (letter == tmpAnswer[index]) {
-                tmpWord = StringBuilder(tmpWord).replace(index, index + 1, "_").toString()
-                tmpAnswer = StringBuilder(tmpAnswer).replace(index, index + 1, "*").toString()
-                resultMask[index] += 2
+                tmpWord = tmpWord.replaceAt(index, "_")
+                tmpAnswer = tmpAnswer.replaceAt(index, "*")
+                resultMask[index] = ColorMask.LETTER_ON_SPOT
             }
         }
         if (tmpWord.isNotBlank()) {
             tmpWord.forEachIndexed { index, letter ->
                 if (letter in tmpAnswer) {
-                    tmpWord = StringBuilder(tmpWord).replaceFirst(letter.toString().toRegex(), "_")
+                    tmpWord =
+                        StringBuilder(tmpWord).replaceFirst(letter.toString().toRegex(), "_")
                     tmpAnswer =
                         StringBuilder(tmpAnswer).replaceFirst(letter.toString().toRegex(), "*")
-                    resultMask[index] += 1
+                    resultMask[index] = ColorMask.LETTER_IN_WORD
                 }
             }
         }

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.danny.burge.wordsgame.R
-import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.ui.theme.LoseBackgroundColor
 import com.danny.burge.wordsgame.ui.theme.VictoryBackgroundColor
 import com.danny.burge.wordsgame.ui.theme.dialogBodyStyle

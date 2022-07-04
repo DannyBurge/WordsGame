@@ -11,4 +11,7 @@
     <string name="loseTitle">ПОРАЖЕНИЕ</string>
     <string name="startNewGame">Новая игра</string>
     <string name="closeDialog">Выход</string>
+
+    <string name="wordNotInDictionaryMessage">Этого слова нет в словаре</string>
+    <string name="wordNotInDictionaryActionLabel">Добавить</string>
 </resources>

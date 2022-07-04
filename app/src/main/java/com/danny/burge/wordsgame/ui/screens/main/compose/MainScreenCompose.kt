@@ -3,12 +3,8 @@ package com.danny.burge.wordsgame.ui.screens.main.compose
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,22 +12,28 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.danny.burge.wordsgame.R
-import com.danny.burge.wordsgame.WordsGameApp
-import com.danny.burge.wordsgame.constants.*
-import com.danny.burge.wordsgame.extention.advancedShadow
+import com.danny.burge.wordsgame.app.WordsGameApp
+import com.danny.burge.wordsgame.constants.ATTEMPT_VALUE_SURRENDER
+import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
+import com.danny.burge.wordsgame.constants.NavigationFunc
+import com.danny.burge.wordsgame.helpers.extention.advancedShadow
+import com.danny.burge.wordsgame.helpers.utils.getBlankString
 import com.danny.burge.wordsgame.ui.elements.ButtonWithImage
 import com.danny.burge.wordsgame.ui.elements.ButtonWithText
 import com.danny.burge.wordsgame.ui.elements.keyboard.WordsGameKeyboard
 import com.danny.burge.wordsgame.ui.elements.letter.grid.LetterGrid
+import com.danny.burge.wordsgame.ui.model.ColorMask
 import com.danny.burge.wordsgame.ui.theme.shapeBigTopCornerRadius
-import com.danny.burge.wordsgame.utils.getBlankString
+import kotlinx.coroutines.launch
 
 var cellIndex = 0
+lateinit var isSnackBarNeeded: MutableState<Boolean>
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreenCompose(
     navigateToToSettings: NavigationFunc,
-    checkWord: (String) -> Unit,
+    checkWord: (String) -> Boolean,
     startNewGame: () -> Unit,
     closeApp: () -> Unit
 ) {
@@ -41,6 +43,9 @@ fun MainScreenCompose(
     val lettersNotInWord = remember { mutableStateListOf<String>() }
 
     val secretWordAnswerState = remember { getBlankString().toMutableStateList() }
+
+    val snackBarHostState = remember { SnackbarHostState() }
+    isSnackBarNeeded = remember { mutableStateOf(false) }
 
     ConstraintLayout(
         modifier = Modifier
@@ -62,29 +67,38 @@ fun MainScreenCompose(
             navigateToToSettings = navigateToToSettings
         )
 
-        LetterGrid(
-            Modifier
-                .fillMaxWidth()
-                .constrainAs(gamePlateRef) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(topAppBarRef.bottom)
-                    bottom.linkTo(controlPanelRef.top)
-                    height = Dimension.fillToConstraints
-                },
-            onCellClick = {
-                cellIndex = it
+        Scaffold(modifier = Modifier
+            .constrainAs(gamePlateRef) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(topAppBarRef.bottom)
+                bottom.linkTo(controlPanelRef.top)
+                height = Dimension.fillToConstraints
+            },
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+        ) { innerPadding ->
+            LetterGrid(
+                Modifier
+                    .padding(innerPadding)
+                    .fillMaxWidth(),
+                onCellClick = {
+                    cellIndex = it
 
-            },
-            startNewGame = {
-                startNewGame()
-                lettersOnSpot.clear()
-                lettersInWord.clear()
-                lettersNotInWord.clear()
-            },
-            closeApp = closeApp,
-            secretWordAnswer = secretWordAnswerState
-        )
+                },
+                startNewGame = {
+                    startNewGame()
+                    lettersOnSpot.clear()
+                    lettersInWord.clear()
+                    lettersNotInWord.clear()
+                },
+                closeApp = closeApp,
+                secretWordAnswer = secretWordAnswerState
+            )
+
+            if (isSnackBarNeeded.value) {
+                ShowSnackBar(snackBarHostState)
+            }
+        }
 
         BottomControlPanel(
             modifier = Modifier
@@ -97,47 +111,56 @@ fun MainScreenCompose(
             lettersOnSpot = lettersOnSpot,
             lettersInWord = lettersInWord,
             lettersNotInWord = lettersNotInWord,
+            isApplyEnable = secretWordAnswerState.all {it != " "},
             checkWord = {
-                checkWord(secretWordAnswerState.joinToString("").lowercase())
+                cellIndex = 0
+                val checked = checkWord(secretWordAnswerState.joinToString("").lowercase())
+
+                if (checked) {
+                    with(WordsGameApp.state) {
+
+                        val currentAnswer = answers[attempt.value]
+
+                        currentAnswer.word.filterIndexed { index, _ ->
+                            currentAnswer.colorMask[index] == ColorMask.LETTER_ON_SPOT
+                        }.forEach { letter ->
+                            if (letter.toString() !in lettersOnSpot) {
+                                lettersOnSpot.add(letter.toString())
+                            }
+                        }
+
+                        currentAnswer.word.filterIndexed { index, _ ->
+                            currentAnswer.colorMask[index] == ColorMask.LETTER_IN_WORD
+                        }.forEach { letter ->
+                            if (letter.toString() !in lettersOnSpot &&
+                                letter.toString() !in lettersInWord
+                            ) {
+                                lettersInWord.add(letter.toString())
+                            }
+                        }
+
+                        if (!WordsGameApp.settings.keyboardVisibility) {
+                            currentAnswer.word.filterIndexed { index, _ ->
+                                currentAnswer.colorMask[index] == ColorMask.LETTER_NOT_IN_WORD
+                            }.forEach { letter ->
+                                if (letter.toString() !in lettersOnSpot &&
+                                    letter.toString() !in lettersInWord &&
+                                    letter.toString() !in lettersNotInWord
+                                ) {
+                                    lettersNotInWord.add(letter.toString())
+                                }
+                            }
+                        }
+
+                        attempt.value++
+                    }
+                    Log.d(DEBUG_LOG_TAG, "${secretWordAnswerState.toList()}")
+                } else {
+                    isSnackBarNeeded.value = true
+                }
+
                 secretWordAnswerState.clear()
                 secretWordAnswerState.addAll(getBlankString().toMutableStateList())
-
-                with(WordsGameApp.state) {
-
-                    val currentAnswer = answers[attempt.value]
-
-                    currentAnswer.word.filterIndexed { index, _ ->
-                        currentAnswer.colorMask[index] == LETTER_ON_SPOT_CODE
-                    }.forEach { letter ->
-                        if (letter.toString() !in lettersOnSpot) {
-                            lettersOnSpot.add(letter.toString())
-                        }
-                    }
-
-                    currentAnswer.word.filterIndexed { index, _ ->
-                        currentAnswer.colorMask[index] == LETTER_IN_WORD_CODE
-                    }.forEach { letter ->
-                        if (letter.toString() !in lettersOnSpot &&
-                            letter.toString() !in lettersInWord
-                        ) {
-                            lettersInWord.add(letter.toString())
-                        }
-                    }
-
-                    currentAnswer.word.filterIndexed { index, _ ->
-                        currentAnswer.colorMask[index] == LETTER_NOT_IN_WORD_CODE
-                    }.forEach { letter ->
-                        if (letter.toString() !in lettersOnSpot &&
-                            letter.toString() !in lettersInWord &&
-                            letter.toString() !in lettersNotInWord
-                        ) {
-                            lettersNotInWord.add(letter.toString())
-                        }
-                    }
-
-                    attempt.value++
-                }
-                Log.d(DEBUG_LOG_TAG, "${secretWordAnswerState.toList()}")
             },
             changeLetter = { index, letter ->
                 secretWordAnswerState[index] = letter
@@ -147,11 +170,33 @@ fun MainScreenCompose(
 }
 
 @Composable
+private fun ShowSnackBar(
+    snackBarHostState: SnackbarHostState
+) {
+    val scope = rememberCoroutineScope()
+    val message = stringResource(id = R.string.wordNotInDictionaryMessage)
+    val actionLabel = stringResource(id = R.string.wordNotInDictionaryActionLabel)
+    LaunchedEffect(key1 = isSnackBarNeeded.value) {
+        scope.launch {
+            snackBarHostState.showSnackbar(
+                message = message,
+                actionLabel = actionLabel,
+                withDismissAction = true,
+                duration = SnackbarDuration.Indefinite
+            )
+            isSnackBarNeeded.value = false
+        }
+    }
+
+}
+
+@Composable
 private fun BottomControlPanel(
     modifier: Modifier,
     lettersOnSpot: List<String>,
     lettersInWord: List<String>,
     lettersNotInWord: List<String>,
+    isApplyEnable: Boolean,
     checkWord: () -> Unit,
     changeLetter: (Int, String) -> Unit
 ) {
@@ -168,6 +213,7 @@ private fun BottomControlPanel(
                 shape = shapeBigTopCornerRadius
             )
     ) {
+
         WordsGameKeyboard(
             modifier = Modifier
                 .padding(top = 16.dp)
@@ -181,7 +227,10 @@ private fun BottomControlPanel(
         )
         BottomButtonRow(
             modifier = Modifier.padding(16.dp),
-            checkWord = checkWord
+            checkWord = {
+                checkWord()
+            },
+            isApplyEnable = isApplyEnable
         )
     }
 }
@@ -189,6 +238,7 @@ private fun BottomControlPanel(
 @Composable
 private fun BottomButtonRow(
     modifier: Modifier = Modifier,
+    isApplyEnable: Boolean,
     checkWord: () -> Unit,
 ) {
     Row(modifier = modifier) {
@@ -202,7 +252,8 @@ private fun BottomButtonRow(
             modifier = Modifier
                 .weight(1F)
                 .padding(start = 8.dp),
-            checkWord = checkWord
+            checkWord = checkWord,
+            enabled = isApplyEnable
         )
 
     }
@@ -246,8 +297,8 @@ private fun SettingsButton(modifier: Modifier, goToSettings: NavigationFunc) {
 }
 
 @Composable
-private fun ApplyWordButton(modifier: Modifier, checkWord: () -> Unit) {
-    ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton))
+private fun ApplyWordButton(modifier: Modifier, enabled: Boolean, checkWord: () -> Unit) {
+    ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton), enabled)
     {
         checkWord()
     }
@@ -258,6 +309,6 @@ private fun SurrenderButton(modifier: Modifier) {
     ButtonWithText(
         modifier = modifier,
         text = stringResource(id = R.string.surrenderButton),
-        onClick = { WordsGameApp.state.attempt.value = WordsGameApp.attemptNumber + 1 }
+        onClick = { WordsGameApp.state.attempt.value = ATTEMPT_VALUE_SURRENDER }
     )
 }

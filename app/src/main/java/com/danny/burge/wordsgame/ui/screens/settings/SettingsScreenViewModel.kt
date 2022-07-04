@@ -2,10 +2,8 @@ package com.danny.burge.wordsgame.ui.screens.settings
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.*
 
 class SettingsScreenViewModel(private val context: Context) : ViewModel() {
@@ -15,10 +13,17 @@ class SettingsScreenViewModel(private val context: Context) : ViewModel() {
         getSavedSettings()
     }
 
-    fun onGameSettingsChanged(gameDifficulty: Int, attemptNumber: Int) {
+    fun onGameSettingsChanged(
+        newGameDifficulty: Int,
+        newAttemptNumber: Int,
+        newKeyboardVisibility: Boolean
+    ) {
         Log.d(DEBUG_LOG_TAG, "onGameSettingsChanged")
-        WordsGameApp.gameDifficulty = gameDifficulty
-        WordsGameApp.attemptNumber = attemptNumber
+        WordsGameApp.settings.apply {
+            gameDifficulty = newGameDifficulty
+            attemptNumber = newAttemptNumber
+            keyboardVisibility = newKeyboardVisibility
+        }
         saveSettings()
     }
 
@@ -29,13 +34,19 @@ class SettingsScreenViewModel(private val context: Context) : ViewModel() {
 
     private fun getSavedSettings() {
         val prefs = context.getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE)
-        WordsGameApp.gameDifficulty = prefs.getInt(DIFFICULTY_VALUE, DIFFICULTY_DEFAULT)
-        WordsGameApp.attemptNumber = prefs.getInt(ATTEMPT_VALUE, ATTEMPT_NUMBER_DEFAULT)
+        WordsGameApp.settings.apply {
+            gameDifficulty = prefs.getInt(DIFFICULTY_VALUE, DIFFICULTY_DEFAULT)
+            attemptNumber = prefs.getInt(ATTEMPT_VALUE, ATTEMPT_NUMBER_DEFAULT)
+            keyboardVisibility = prefs.getBoolean(KEYBOARD_VISIBILITY, KEYBOARD_VISIBILITY_DEFAULT)
+        }
     }
 
     private fun saveSettings() {
         val prefs = context.getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putInt(DIFFICULTY_VALUE, WordsGameApp.gameDifficulty).apply()
-        prefs.edit().putInt(ATTEMPT_VALUE, WordsGameApp.attemptNumber).apply()
+        WordsGameApp.settings.apply {
+            prefs.edit().putInt(DIFFICULTY_VALUE, gameDifficulty).apply()
+            prefs.edit().putInt(ATTEMPT_VALUE, attemptNumber).apply()
+            prefs.edit().putBoolean(KEYBOARD_VISIBILITY, keyboardVisibility).apply()
+        }
     }
 }

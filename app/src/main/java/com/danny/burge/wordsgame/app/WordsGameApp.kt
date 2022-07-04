@@ -1,17 +1,13 @@
-package com.danny.burge.wordsgame
+package com.danny.burge.wordsgame.app
 
 import android.app.Application
-import androidx.compose.runtime.mutableStateOf
 import androidx.room.Room
-import com.danny.burge.wordsgame.constants.ATTEMPT_NUMBER_DEFAULT
-import com.danny.burge.wordsgame.constants.DIFFICULTY_DEFAULT
 import com.danny.burge.wordsgame.database.WordsDatabase
 import com.danny.burge.wordsgame.di.appComponent
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 class WordsGameApp : Application() {
-
     override fun onCreate() {
         super.onCreate()
         initKoin()
@@ -34,9 +30,7 @@ class WordsGameApp : Application() {
 
     companion object {
         var wordsDatabase: WordsDatabase? = null
-        var gameDifficulty: Int = DIFFICULTY_DEFAULT
-        var attemptNumber: Int = ATTEMPT_NUMBER_DEFAULT
-
         var state = AppState()
+        val settings = AppSettings()
     }
 }

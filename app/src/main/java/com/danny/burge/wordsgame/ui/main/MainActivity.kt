@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.NavController
+import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
 import com.danny.burge.wordsgame.constants.MAIN_SCREEN
 import com.danny.burge.wordsgame.constants.SETTINGS_SCREEN
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun closeApp() {
+        WordsGameApp.state.clear()
         settingsScreenViewModel.onAppClosed()
         finishAffinity()
     }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import com.danny.burge.wordsgame.ui.model.Answer
 import com.danny.burge.wordsgame.ui.theme.BackgroundOnSelectedRow
 import com.danny.burge.wordsgame.ui.theme.shapeMediumCornerRadius
-import com.danny.burge.wordsgame.ui.theme.shapeSmallCornerRadius
 
 @Composable
 fun LetterRow(
@@ -39,16 +37,12 @@ fun LetterRow(
         }
         items(items = rowItems) {
             val index = it.second
-            val letter: String
-            val backgroundColorCode: Int
-            if (isBlocked) {
-                letter = (checkedWord?.word?.get(index) ?: " ").toString()
-                backgroundColorCode = checkedWord?.colorMask?.get(index) ?: 0
+            val letter = if (isBlocked) {
+                (checkedWord?.word?.get(index) ?: " ").toString()
             } else {
-                letter = currentAnswer[index]
-                backgroundColorCode = 0
+                currentAnswer[index]
             }
-            LetterCell(letter, isBlocked, index, backgroundColorCode, onCellClick)
+            LetterCell(letter, isBlocked, index, checkedWord?.colorMask?.get(index), onCellClick)
         }
     }
 }

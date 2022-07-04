@@ -9,19 +9,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.danny.burge.wordsgame.ui.theme.shapeBigCornerRadius
 
 @Composable
-fun ButtonWithText(modifier: Modifier, text: String, onClick: () -> Unit) {
+fun ButtonWithText(modifier: Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Box(
         modifier = modifier
+            .alpha(if (enabled) 1F else 0.3f)
             .background(MaterialTheme.colorScheme.primary, shapeBigCornerRadius)
             .clip(shapeBigCornerRadius)
-            .clickable { onClick() }
+            .clickable(enabled = enabled) { onClick() }
             .wrapContentSize(),
     ) {
-        Text(modifier = Modifier.padding(8.dp), text = text, color = MaterialTheme.colorScheme.onPrimary)
+        Text(
+            modifier = Modifier.padding(8.dp),
+            text = text,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }

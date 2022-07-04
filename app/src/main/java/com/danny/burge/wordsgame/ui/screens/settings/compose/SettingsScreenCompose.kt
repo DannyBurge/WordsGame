@@ -6,7 +6,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.danny.burge.wordsgame.R
-import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.NavigationFunc
 import com.danny.burge.wordsgame.ui.elements.ButtonWithText
 import com.danny.burge.wordsgame.ui.elements.SliderWithTextValue
@@ -14,15 +14,15 @@ import kotlin.properties.Delegates
 
 var difficultySliderValue by Delegates.notNull<Int>()
 var attemptsSliderValue by Delegates.notNull<Int>()
+var keyboardVisibilityCheckBoxValue by Delegates.notNull<Boolean>()
 
 @Composable
 fun SettingsScreenCompose(
-    onGameSettingsChanged: (Int, Int) -> Unit,
+    onGameSettingsChanged: (Int, Int, Boolean) -> Unit,
     startNewGame: () -> Unit,
     navigateToMainScreen: NavigationFunc
 ) {
-    difficultySliderValue = WordsGameApp.gameDifficulty
-    attemptsSliderValue = WordsGameApp.attemptNumber
+    initSettingsValues()
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -47,6 +47,14 @@ fun SettingsScreenCompose(
             navigateToMainScreen,
             startNewGame
         )
+    }
+}
+
+private fun initSettingsValues() {
+    WordsGameApp.settings.apply {
+        difficultySliderValue = gameDifficulty
+        attemptsSliderValue = attemptNumber
+        keyboardVisibilityCheckBoxValue = keyboardVisibility
     }
 }
 
@@ -75,13 +83,13 @@ fun AttemptSelector(
 @Composable
 fun ApplySettingsButton(
     modifier: Modifier,
-    onDifficultyChanged: (Int, Int) -> Unit,
+    onDifficultyChanged: (Int, Int, Boolean) -> Unit,
     navigateToMainScreen: NavigationFunc,
     startNewGame: () -> Unit
 ) {
     ButtonWithText(modifier, text = stringResource(id = R.string.applySettingsButton))
     {
-        onDifficultyChanged(difficultySliderValue, attemptsSliderValue)
+        onDifficultyChanged(difficultySliderValue, attemptsSliderValue, keyboardVisibilityCheckBoxValue)
         navigateToMainScreen()
         startNewGame()
     }

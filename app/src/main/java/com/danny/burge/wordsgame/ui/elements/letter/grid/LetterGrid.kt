@@ -5,7 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.danny.burge.wordsgame.WordsGameApp
+import com.danny.burge.wordsgame.app.WordsGameApp
+import com.danny.burge.wordsgame.constants.ATTEMPT_VALUE_SURRENDER
 import com.danny.burge.wordsgame.ui.elements.ShowEndGameDialog
 
 @Composable
@@ -24,11 +25,11 @@ fun LetterGrid(
     if (secretWordAnswer.isNotEmpty()) {
 
         LazyColumn(modifier = modifier.fillMaxWidth()) {
-            val columnItems = (0 until WordsGameApp.attemptNumber).map { it }
+            val columnItems = (0 until WordsGameApp.settings.attemptNumber).map { it }
             items(items = columnItems) { item ->
                 LetterRow(
                     modifier = modifier,
-                    rowLength = WordsGameApp.gameDifficulty,
+                    rowLength = WordsGameApp.settings.gameDifficulty,
                     checkedWord = WordsGameApp.state.answers.getOrNull(item),
                     isBlocked = item != WordsGameApp.state.attempt.value,
                     onCellClick = onCellClick,
@@ -46,7 +47,8 @@ private fun checkIfWin(
 ) {
     with(WordsGameApp.state) {
         if (attempt.value > 0) {
-            if (answers[attempt.value - 1].isCompletelyOpen) {
+            if (answers.last().isCompletelyOpen) {
+                showDialog.value = true
                 ShowEndGameDialog(
                     isVictory = true,
                     secretWord = secretWord.value.word_letters,
@@ -63,12 +65,13 @@ private fun checkIfLose(
     startNewGame: () -> Unit,
     closeApp: () -> Unit
 ) {
-    with(WordsGameApp.state) {
-        if (WordsGameApp.state.attempt.value >= WordsGameApp.attemptNumber) {
+    with(WordsGameApp) {
+        if (state.attempt.value >= settings.attemptNumber || state.attempt.value == ATTEMPT_VALUE_SURRENDER) {
+            state.showDialog.value = true
             ShowEndGameDialog(
                 isVictory = false,
-                secretWord = secretWord.value.word_letters,
-                textAboutWord = secretWordDefinition.value,
+                secretWord = state.secretWord.value.word_letters,
+                textAboutWord = state.secretWordDefinition.value,
                 startNewGame = { startNewGame() },
                 closeApp = { closeApp() })
         }
