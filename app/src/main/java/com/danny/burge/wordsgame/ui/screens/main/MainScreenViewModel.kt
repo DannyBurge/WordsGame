@@ -24,7 +24,6 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
         getRandomWordByLength(WordsGameApp.settings.gameDifficulty)
     }
 
-
     private fun getRandomWordByLength(length: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(DEBUG_LOG_TAG, "getRandomWordByLength")
@@ -73,7 +72,6 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
                 )
                 return true
             } else {
-                //TODO Реакция на слово, которого нет в словаре (пока краш)}
                 return false
             }
         }

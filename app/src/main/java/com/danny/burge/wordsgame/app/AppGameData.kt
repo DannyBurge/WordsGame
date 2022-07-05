@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.danny.burge.wordsgame.database.models.Word
 import com.danny.burge.wordsgame.ui.model.Answer
 
-data class AppState(
+data class AppGameData(
     var secretWord: MutableState<Word> = mutableStateOf(Word()),
     var secretWordDefinition: MutableState<String> = mutableStateOf(""),
 

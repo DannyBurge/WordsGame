@@ -30,7 +30,7 @@ class WordsGameApp : Application() {
 
     companion object {
         var wordsDatabase: WordsDatabase? = null
-        var state = AppState()
+        var state = AppGameData()
         val settings = AppSettings()
     }
 }

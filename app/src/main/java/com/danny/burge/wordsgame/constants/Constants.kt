@@ -3,6 +3,9 @@ package com.danny.burge.wordsgame.constants
 /**
 String constants
  **/
+// General
+const val EMPTY_LETTER = " "
+const val BACKSPACE_LETTER = "<"
 
 // Navigation
 const val MAIN_SCREEN = "MainScreenCompose"

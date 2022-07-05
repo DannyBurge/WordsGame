@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.danny.burge.wordsgame.constants.BACKSPACE_LETTER
 import com.danny.burge.wordsgame.ui.model.KeyboardKey
 import java.util.*
 
@@ -101,5 +102,5 @@ private val thirdRow: List<String> = listOf(
     "ь",
     "б",
     "ю",
-    "<"
+    BACKSPACE_LETTER
 )

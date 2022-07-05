@@ -1,6 +1,7 @@
 package com.danny.burge.wordsgame.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -14,14 +15,17 @@ val shapeBigCornerRadius = RoundedCornerShape(16.dp)
 val shapeBigTopCornerRadius = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 
 val letterStyle = TextStyle(
+    color = Color.Black,
     fontFamily = FontFamily.Default,
     fontWeight = FontWeight.Normal,
+    textAlign = TextAlign.Center,
     fontSize = 20.sp,
     lineHeight = 20.sp,
     letterSpacing = 0.5.sp,
 )
 
 val dialogTitleStyle = TextStyle(
+    color = Color.Black,
     fontFamily = FontFamily.Default,
     fontWeight = FontWeight.Normal,
     fontSize = 32.sp,
@@ -31,6 +35,7 @@ val dialogTitleStyle = TextStyle(
 )
 
 val dialogBodyStyle = TextStyle(
+    color = Color.Black,
     fontFamily = FontFamily.Default,
     fontWeight = FontWeight.Normal,
     fontSize = 16.sp,

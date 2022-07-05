@@ -7,19 +7,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.app.WordsGameApp
-import com.danny.burge.wordsgame.constants.ATTEMPT_VALUE_SURRENDER
-import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
-import com.danny.burge.wordsgame.constants.NavigationFunc
+import com.danny.burge.wordsgame.constants.*
 import com.danny.burge.wordsgame.helpers.extention.advancedShadow
 import com.danny.burge.wordsgame.helpers.utils.getBlankString
 import com.danny.burge.wordsgame.ui.elements.ButtonWithImage
 import com.danny.burge.wordsgame.ui.elements.ButtonWithText
+import com.danny.burge.wordsgame.ui.elements.ShowEndGameDialog
 import com.danny.burge.wordsgame.ui.elements.keyboard.WordsGameKeyboard
 import com.danny.burge.wordsgame.ui.elements.letter.grid.LetterGrid
 import com.danny.burge.wordsgame.ui.model.ColorMask
@@ -37,6 +37,17 @@ fun MainScreenCompose(
     startNewGame: () -> Unit,
     closeApp: () -> Unit
 ) {
+    // Check last answer if it is correct and show win dialog
+    CheckIfWin(
+        startNewGame = startNewGame,
+        closeApp = closeApp
+    )
+    // Check attempt number if it is all of them and show lose dialog
+    CheckIfLose(
+        startNewGame = startNewGame,
+        closeApp = closeApp
+    )
+
     // for Keyboard
     val lettersOnSpot = remember { mutableStateListOf<String>() }
     val lettersInWord = remember { mutableStateListOf<String>() }
@@ -85,13 +96,6 @@ fun MainScreenCompose(
                     cellIndex = it
 
                 },
-                startNewGame = {
-                    startNewGame()
-                    lettersOnSpot.clear()
-                    lettersInWord.clear()
-                    lettersNotInWord.clear()
-                },
-                closeApp = closeApp,
                 secretWordAnswer = secretWordAnswerState
             )
 
@@ -111,7 +115,7 @@ fun MainScreenCompose(
             lettersOnSpot = lettersOnSpot,
             lettersInWord = lettersInWord,
             lettersNotInWord = lettersNotInWord,
-            isApplyEnable = secretWordAnswerState.all {it != " "},
+            isApplyEnable = secretWordAnswerState.all { it != EMPTY_LETTER },
             checkWord = {
                 cellIndex = 0
                 val checked = checkWord(secretWordAnswerState.joinToString("").lowercase())
@@ -163,9 +167,49 @@ fun MainScreenCompose(
                 secretWordAnswerState.addAll(getBlankString().toMutableStateList())
             },
             changeLetter = { index, letter ->
-                secretWordAnswerState[index] = letter
+                secretWordAnswerState[index] =
+                    if (letter == BACKSPACE_LETTER) EMPTY_LETTER else letter
             }
         )
+    }
+}
+
+
+@Composable
+private fun CheckIfWin(
+    startNewGame: () -> Unit,
+    closeApp: () -> Unit
+) {
+    with(WordsGameApp.state) {
+        if (attempt.value > 0) {
+            if (answers.last().isCompletelyOpen) {
+                showDialog.value = true
+                ShowEndGameDialog(
+                    isVictory = true,
+                    secretWord = secretWord.value.word_letters,
+                    textAboutWord = secretWordDefinition.value,
+                    startNewGame = { startNewGame() },
+                    closeApp = { closeApp() })
+            }
+        }
+    }
+}
+
+@Composable
+private fun CheckIfLose(
+    startNewGame: () -> Unit,
+    closeApp: () -> Unit
+) {
+    with(WordsGameApp) {
+        if (state.attempt.value >= settings.attemptNumber || state.attempt.value == ATTEMPT_VALUE_SURRENDER) {
+            state.showDialog.value = true
+            ShowEndGameDialog(
+                isVictory = false,
+                secretWord = state.secretWord.value.word_letters,
+                textAboutWord = state.secretWordDefinition.value,
+                startNewGame = { startNewGame() },
+                closeApp = { closeApp() })
+        }
     }
 }
 
@@ -298,17 +342,24 @@ private fun SettingsButton(modifier: Modifier, goToSettings: NavigationFunc) {
 
 @Composable
 private fun ApplyWordButton(modifier: Modifier, enabled: Boolean, checkWord: () -> Unit) {
-    ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton), enabled)
-    {
-        checkWord()
-    }
+    val focusManager = LocalFocusManager.current
+    ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton), enabled,
+        onClick = {
+            focusManager.clearFocus()
+            checkWord()
+        }
+    )
 }
 
 @Composable
 private fun SurrenderButton(modifier: Modifier) {
+    val focusManager = LocalFocusManager.current
     ButtonWithText(
         modifier = modifier,
         text = stringResource(id = R.string.surrenderButton),
-        onClick = { WordsGameApp.state.attempt.value = ATTEMPT_VALUE_SURRENDER }
+        onClick = {
+            focusManager.clearFocus()
+            WordsGameApp.state.attempt.value = ATTEMPT_VALUE_SURRENDER
+        }
     )
 }

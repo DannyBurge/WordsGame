@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
     private val mainScreenViewModel: MainScreenViewModel by viewModel()
     private val settingsScreenViewModel: SettingsScreenViewModel by viewModel()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingsScreenViewModel.onAppOpen()
