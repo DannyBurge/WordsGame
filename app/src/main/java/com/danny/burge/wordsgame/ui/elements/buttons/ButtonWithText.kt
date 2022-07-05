@@ -1,4 +1,4 @@
-package com.danny.burge.wordsgame.ui.elements
+package com.danny.burge.wordsgame.ui.elements.buttons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

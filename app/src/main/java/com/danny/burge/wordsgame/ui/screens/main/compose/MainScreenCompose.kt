@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -17,9 +16,10 @@ import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.*
 import com.danny.burge.wordsgame.helpers.extention.advancedShadow
 import com.danny.burge.wordsgame.helpers.utils.getBlankString
-import com.danny.burge.wordsgame.ui.elements.ButtonWithImage
-import com.danny.burge.wordsgame.ui.elements.ButtonWithText
 import com.danny.burge.wordsgame.ui.elements.ShowEndGameDialog
+import com.danny.burge.wordsgame.ui.elements.buttons.ApplyWordButton
+import com.danny.burge.wordsgame.ui.elements.buttons.SettingsButton
+import com.danny.burge.wordsgame.ui.elements.buttons.SurrenderButton
 import com.danny.burge.wordsgame.ui.elements.keyboard.WordsGameKeyboard
 import com.danny.burge.wordsgame.ui.elements.letter.grid.LetterGrid
 import com.danny.burge.wordsgame.ui.model.ColorMask
@@ -304,7 +304,10 @@ private fun BottomButtonRow(
 }
 
 @Composable
-private fun TopAppBar(modifier: Modifier, navigateToToSettings: NavigationFunc) {
+private fun TopAppBar(
+    modifier: Modifier,
+    navigateToToSettings: NavigationFunc
+) {
     Box(
         modifier = modifier
             .wrapContentHeight()
@@ -333,33 +336,4 @@ private fun TopAppBar(modifier: Modifier, navigateToToSettings: NavigationFunc) 
             navigateToToSettings
         )
     }
-}
-
-@Composable
-private fun SettingsButton(modifier: Modifier, goToSettings: NavigationFunc) {
-    ButtonWithImage(modifier = modifier, onClick = goToSettings)
-}
-
-@Composable
-private fun ApplyWordButton(modifier: Modifier, enabled: Boolean, checkWord: () -> Unit) {
-    val focusManager = LocalFocusManager.current
-    ButtonWithText(modifier, text = stringResource(id = R.string.applyWordButton), enabled,
-        onClick = {
-            focusManager.clearFocus()
-            checkWord()
-        }
-    )
-}
-
-@Composable
-private fun SurrenderButton(modifier: Modifier) {
-    val focusManager = LocalFocusManager.current
-    ButtonWithText(
-        modifier = modifier,
-        text = stringResource(id = R.string.surrenderButton),
-        onClick = {
-            focusManager.clearFocus()
-            WordsGameApp.state.attempt.value = ATTEMPT_VALUE_SURRENDER
-        }
-    )
 }

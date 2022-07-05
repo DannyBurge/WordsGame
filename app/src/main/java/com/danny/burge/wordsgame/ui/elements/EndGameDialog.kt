@@ -16,6 +16,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.app.WordsGameApp
+import com.danny.burge.wordsgame.ui.elements.buttons.ExitButton
+import com.danny.burge.wordsgame.ui.elements.buttons.StartNewGameButton
 import com.danny.burge.wordsgame.ui.theme.LoseBackgroundColor
 import com.danny.burge.wordsgame.ui.theme.VictoryBackgroundColor
 import com.danny.burge.wordsgame.ui.theme.dialogBodyStyle
@@ -141,25 +143,18 @@ private fun ButtonRow(
             .wrapContentHeight()
             .fillMaxWidth()
     ) {
-        ButtonWithText(
+        StartNewGameButton(
             modifier = Modifier
-                .wrapContentHeight()
                 .weight(1F)
-                .fillMaxWidth()
                 .padding(end = 8.dp),
-            text = stringResource(id = R.string.startNewGame)
-        ) {
-            startNewGame()
-        }
+            startNewGame = startNewGame
+        )
 
-        ButtonWithText(
+        ExitButton(
             modifier = Modifier
                 .weight(1F)
-                .fillMaxWidth()
                 .padding(start = 8.dp),
-            text = stringResource(id = R.string.closeDialog)
-        ) {
-            closeDialog()
-        }
+            closeApp = closeDialog
+        )
     }
 }

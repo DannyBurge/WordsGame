@@ -8,7 +8,7 @@ import androidx.compose.ui.res.stringResource
 import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.constants.NavigationFunc
-import com.danny.burge.wordsgame.ui.elements.ButtonWithText
+import com.danny.burge.wordsgame.ui.elements.buttons.ButtonWithText
 import com.danny.burge.wordsgame.ui.elements.SliderWithTextValue
 import kotlin.properties.Delegates
 
