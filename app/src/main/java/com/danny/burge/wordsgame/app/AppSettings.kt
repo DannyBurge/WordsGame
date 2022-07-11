@@ -6,5 +6,5 @@ import com.danny.burge.wordsgame.constants.DIFFICULTY_DEFAULT
 data class AppSettings(
     var gameDifficulty: Int = DIFFICULTY_DEFAULT,
     var attemptNumber: Int = ATTEMPT_NUMBER_DEFAULT,
-    var keyboardVisibility: Boolean = false
+    var hideKeysInKeyboard: Boolean = true
 )

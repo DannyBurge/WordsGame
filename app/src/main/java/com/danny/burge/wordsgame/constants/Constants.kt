@@ -5,8 +5,9 @@ String constants
  **/
 // General
 const val EMPTY_LETTER = " "
+const val NO_LETTER = ""
 const val BACKSPACE_LETTER = "<"
-
+const val DATABASE_NAME = "words.db"
 // Navigation
 const val MAIN_SCREEN = "MainScreenCompose"
 const val SETTINGS_SCREEN = "SettingsScreenCompose"
@@ -34,7 +35,7 @@ const val ATTEMPT_VALUE_SURRENDER = -1
 /**
 Boolean constants
  **/
-const val KEYBOARD_VISIBILITY_DEFAULT = false
+const val HIDE_KEYS_IN_KEYBOARD_DEFAULT = true
 
 /**
 Alias

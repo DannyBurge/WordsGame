@@ -4,11 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.danny.burge.wordsgame.constants.EMPTY_LETTER
 import com.danny.burge.wordsgame.ui.model.Answer
@@ -21,19 +22,21 @@ fun LetterRow(
     rowLength: Int,
     checkedWord: Answer?,
     isBlocked: Boolean,
-    rowIndex: Int,
     currentAnswer: List<String>,
     onCellClick: (Int) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
     Row(
         modifier = modifier
             .padding(vertical = if (!isBlocked) 5.dp else 1.dp, horizontal = 0.dp)
             .wrapContentSize()
             .background(
                 color = if (!isBlocked) BackgroundOnSelectedRow else Color.Transparent,
-                shapeMediumCornerRadius
+                shape = shapeMediumCornerRadius
             )
-            .padding(vertical = if (!isBlocked) 5.dp else 0.dp, horizontal = 3.dp)
+            .padding(
+                vertical = if (!isBlocked) 5.dp else 0.dp,
+                horizontal = 3.dp)
     ) {
         val rowItems = (0 until rowLength).map { index ->
             (checkedWord?.word?.get(index) ?: EMPTY_LETTER).toString() to index
@@ -49,7 +52,6 @@ fun LetterRow(
                 letter = letter,
                 isBlocked = isBlocked,
                 index = index,
-                rowIndex = rowIndex,
                 backgroundColorCode = checkedWord?.colorMask?.get(index),
                 onCellClick = onCellClick
             )

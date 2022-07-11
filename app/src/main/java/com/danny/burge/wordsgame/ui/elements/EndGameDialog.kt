@@ -3,25 +3,23 @@ package com.danny.burge.wordsgame.ui.elements
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.constraintlayout.compose.ConstraintLayout
 import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.app.WordsGameApp
 import com.danny.burge.wordsgame.ui.elements.buttons.ExitButton
 import com.danny.burge.wordsgame.ui.elements.buttons.StartNewGameButton
-import com.danny.burge.wordsgame.ui.theme.LoseBackgroundColor
-import com.danny.burge.wordsgame.ui.theme.VictoryBackgroundColor
-import com.danny.burge.wordsgame.ui.theme.dialogBodyStyle
-import com.danny.burge.wordsgame.ui.theme.dialogTitleStyle
+import com.danny.burge.wordsgame.ui.theme.*
 
 @Composable
 fun ShowEndGameDialog(
@@ -58,78 +56,49 @@ fun EndGameDialog(
         modifier = Modifier
             .heightIn(max = 400.dp)
             .background(
-                if (isVictory) VictoryBackgroundColor else LoseBackgroundColor,
-                RoundedCornerShape(16.dp)
+                MaterialTheme.colorScheme.background,
+                shapeBigCornerRadius
             )
     ) {
+        //Text body
         Text(
-            text = stringResource(id = if (isVictory) R.string.victoryTitle else R.string.loseTitle),
-            style = dialogTitleStyle,
             modifier = Modifier
-                .fillMaxWidth()
-        )
-        DialogBody(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp))
-                .wrapContentHeight(unbounded = false),
-            textBody = if (textAboutWord.isNullOrEmpty()) {
+                .padding(horizontal = 16.dp)
+                .padding(top = 60.dp)
+                .heightIn(min = 50.dp, max = 200.dp)
+                .verticalScroll(rememberScrollState()),
+            text = if (textAboutWord.isNullOrEmpty()) {
                 "$secretWord - определение недоступно"
             } else {
                 textAboutWord
             },
-            startNewGame = startNewGame,
-            closeDialog = closeDialog
+            style = dialogBodyStyle,
+            color = Color.White,
         )
-    }
-}
 
-@Composable
-private fun DialogBody(
-    modifier: Modifier,
-    textBody: String,
-    startNewGame: () -> Unit,
-    closeDialog: () -> Unit
-) {
-    ConstraintLayout(
-        modifier = modifier
-    )
-    {
-        val (textBodyRef, buttonRowRef) = createRefs()
-        Column(
-            modifier = Modifier
-                .padding(vertical = 32.dp, horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .constrainAs(textBodyRef) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(buttonRowRef.top)
-                }
-                .fillMaxHeight()
-        ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(unbounded = false),
-                text = textBody,
-                style = dialogBodyStyle,
-                color = Color.White,
-            )
-        }
+        //Buttons
         ButtonRow(
             modifier = Modifier
-                .constrainAs(buttonRowRef) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                }
                 .wrapContentHeight()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp),
+                .padding(all = dimensionResource(id = R.dimen.paddingMedium)),
             startNewGame = startNewGame,
             closeDialog = closeDialog
         )
     }
+
+    //Title
+    Text(
+        text = stringResource(id = if (isVictory) R.string.victoryTitle else R.string.loseTitle),
+        style = dialogTitleStyle,
+        modifier = Modifier
+            .wrapContentHeight(Alignment.Top)
+            .fillMaxWidth()
+            .background(
+                if (isVictory) VictoryBackgroundColor else LoseBackgroundColor,
+                shapeBigCornerRadius
+            )
+            .padding(dimensionResource(id = R.dimen.paddingMedium))
+    )
 }
 
 @Composable
@@ -157,4 +126,16 @@ private fun ButtonRow(
             closeApp = closeDialog
         )
     }
+}
+
+@Preview
+@Composable
+fun DialogPreview() {
+    ShowEndGameDialog(
+        isVictory = true,
+        secretWord = "секретное слово",
+        textAboutWord = null,
+        startNewGame = {},
+        closeApp = {}
+    )
 }

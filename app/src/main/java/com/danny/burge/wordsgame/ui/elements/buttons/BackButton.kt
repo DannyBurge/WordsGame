@@ -7,10 +7,10 @@ import com.danny.burge.wordsgame.R
 import com.danny.burge.wordsgame.constants.NavigationFunc
 
 @Composable
-fun SettingsButton(modifier: Modifier, goToSettings: NavigationFunc) {
+fun BackButton(modifier: Modifier, goBack: NavigationFunc) {
     ButtonWithImage(
         modifier = modifier,
-        painter = painterResource(R.drawable.baseline_settings_black_24dp),
-        onClick = goToSettings
+        painter = painterResource(R.drawable.baseline_arrow_back_black_24dp),
+        onClick = goBack
     )
 }

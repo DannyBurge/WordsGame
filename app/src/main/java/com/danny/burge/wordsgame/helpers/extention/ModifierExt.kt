@@ -1,6 +1,7 @@
 package com.danny.burge.wordsgame.helpers.extention
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
@@ -11,9 +12,9 @@ import androidx.compose.ui.unit.dp
 
 fun Modifier.advancedShadow(
     color: Color = Color.Black,
-    alpha: Float = 1f,
+    alpha: Float = 0.5f,
     cornersRadius: Dp = 0.dp,
-    shadowBlurRadius: Dp = 0.dp,
+    shadowBlurRadius: Dp = 8.dp,
     offsetY: Dp = 0.dp,
     offsetX: Dp = 0.dp
 ) = drawBehind {
@@ -32,13 +33,21 @@ fun Modifier.advancedShadow(
             shadowColor
         )
         it.drawRoundRect(
-            0f,
-            0f,
-            this.size.width,
-            this.size.height,
-            cornersRadius.toPx(),
-            cornersRadius.toPx(),
-            paint
+            left = 0f,
+            top = 0f,
+            right = this.size.width,
+            bottom = this.size.height,
+            radiusX = cornersRadius.toPx(),
+            radiusY = cornersRadius.toPx(),
+            paint = paint
         )
     }
 }
+
+fun Modifier.visible(
+    isVisible: Boolean = true
+) = this.alpha(if (isVisible) 1F else 0F)
+
+fun Modifier.enable(
+    isEnable: Boolean = true
+) = this.alpha(if (isEnable) 1F else 0.3f)

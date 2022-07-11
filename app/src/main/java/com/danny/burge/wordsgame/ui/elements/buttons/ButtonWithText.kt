@@ -11,21 +11,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
+import com.danny.burge.wordsgame.helpers.extention.enable
 import com.danny.burge.wordsgame.ui.theme.shapeBigCornerRadius
+import com.danny.burge.wordsgame.R
 
 @Composable
 fun ButtonWithText(modifier: Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .alpha(if (enabled) 1F else 0.3f)
+            .enable(enabled)
             .background(MaterialTheme.colorScheme.primary, shapeBigCornerRadius)
             .clip(shapeBigCornerRadius)
             .clickable(enabled = enabled) { onClick() }
             .wrapContentSize(),
     ) {
         Text(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.paddingMedium)),
             text = text,
             color = MaterialTheme.colorScheme.onPrimary
         )

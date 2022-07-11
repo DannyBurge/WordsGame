@@ -1,24 +1,28 @@
 package com.danny.burge.wordsgame.ui.screens.main.compose
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.danny.burge.wordsgame.R
+import com.danny.burge.wordsgame.app.NavigationCommand
 import com.danny.burge.wordsgame.app.WordsGameApp
-import com.danny.burge.wordsgame.constants.*
+import com.danny.burge.wordsgame.constants.ATTEMPT_VALUE_SURRENDER
+import com.danny.burge.wordsgame.constants.BACKSPACE_LETTER
+import com.danny.burge.wordsgame.constants.EMPTY_LETTER
 import com.danny.burge.wordsgame.helpers.extention.advancedShadow
 import com.danny.burge.wordsgame.helpers.utils.getBlankString
+import com.danny.burge.wordsgame.logic.GameEvent
 import com.danny.burge.wordsgame.ui.elements.ShowEndGameDialog
+import com.danny.burge.wordsgame.ui.elements.TopAppBar
 import com.danny.burge.wordsgame.ui.elements.buttons.ApplyWordButton
-import com.danny.burge.wordsgame.ui.elements.buttons.SettingsButton
 import com.danny.burge.wordsgame.ui.elements.buttons.SurrenderButton
 import com.danny.burge.wordsgame.ui.elements.keyboard.WordsGameKeyboard
 import com.danny.burge.wordsgame.ui.elements.letter.grid.LetterGrid
@@ -26,34 +30,20 @@ import com.danny.burge.wordsgame.ui.model.ColorMask
 import com.danny.burge.wordsgame.ui.theme.shapeBigTopCornerRadius
 import kotlinx.coroutines.launch
 
-var cellIndex = 0
 lateinit var isSnackBarNeeded: MutableState<Boolean>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreenCompose(
-    navigateToToSettings: NavigationFunc,
-    checkWord: (String) -> Boolean,
-    startNewGame: () -> Unit,
-    closeApp: () -> Unit
+    onEventHandler: (GameEvent) -> Unit,
+    onNavigationCommand: (NavigationCommand) -> Unit,
 ) {
-    // Check last answer if it is correct and show win dialog
-    CheckIfWin(
-        startNewGame = startNewGame,
-        closeApp = closeApp
-    )
-    // Check attempt number if it is all of them and show lose dialog
-    CheckIfLose(
-        startNewGame = startNewGame,
-        closeApp = closeApp
-    )
+    val focusManager = LocalFocusManager.current
 
-    // for Keyboard
-    val lettersOnSpot = remember { mutableStateListOf<String>() }
-    val lettersInWord = remember { mutableStateListOf<String>() }
-    val lettersNotInWord = remember { mutableStateListOf<String>() }
-
-    val secretWordAnswerState = remember { getBlankString().toMutableStateList() }
+    CheckIfGameEnded(
+        startNewGame = { onEventHandler(GameEvent.OnNewGameClicked) },
+        closeApp = { onEventHandler(GameEvent.OnApplicationClosed) }
+    )
 
     val snackBarHostState = remember { SnackbarHostState() }
     isSnackBarNeeded = remember { mutableStateOf(false) }
@@ -61,6 +51,7 @@ fun MainScreenCompose(
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         val (
             topAppBarRef,
@@ -75,7 +66,8 @@ fun MainScreenCompose(
                     end.linkTo(parent.end)
                     height = Dimension.fillToConstraints
                 },
-            navigateToToSettings = navigateToToSettings
+            isMainScreen = true,
+            onNavigationCommand = onNavigationCommand
         )
 
         Scaffold(modifier = Modifier
@@ -93,17 +85,18 @@ fun MainScreenCompose(
                     .padding(innerPadding)
                     .fillMaxWidth(),
                 onCellClick = {
-                    cellIndex = it
-
+                    onEventHandler(GameEvent.OnTileFocused(it))
                 },
-                secretWordAnswer = secretWordAnswerState
+                secretWordAnswer = WordsGameApp.state.secretWordAnswer
             )
 
             if (isSnackBarNeeded.value) {
-                ShowSnackBar(snackBarHostState)
+                ShowSnackBar(
+                    snackBarHostState = snackBarHostState,
+                    onEventHandler = onEventHandler
+                )
             }
         }
-
         BottomControlPanel(
             modifier = Modifier
                 .constrainAs(controlPanelRef) {
@@ -112,17 +105,17 @@ fun MainScreenCompose(
                     bottom.linkTo(parent.bottom)
                 }
                 .wrapContentHeight(),
-            lettersOnSpot = lettersOnSpot,
-            lettersInWord = lettersInWord,
-            lettersNotInWord = lettersNotInWord,
-            isApplyEnable = secretWordAnswerState.all { it != EMPTY_LETTER },
+            lettersOnSpot = WordsGameApp.state.lettersOnSpot,
+            lettersInWord = WordsGameApp.state.lettersInWord,
+            lettersNotInWord = WordsGameApp.state.lettersNotInWord,
+            isApplyEnable = WordsGameApp.state.secretWordAnswer.all { it != EMPTY_LETTER },
             checkWord = {
-                cellIndex = 0
-                val checked = checkWord(secretWordAnswerState.joinToString("").lowercase())
+                with(WordsGameApp.state) {
+                    cellIndex = WordsGameApp.settings.gameDifficulty
 
-                if (checked) {
-                    with(WordsGameApp.state) {
+                    onEventHandler(GameEvent.OnWordApplied)
 
+                    if (secretWordAnswerApplied) {
                         val currentAnswer = answers[attempt.value]
 
                         currentAnswer.word.filterIndexed { index, _ ->
@@ -143,7 +136,7 @@ fun MainScreenCompose(
                             }
                         }
 
-                        if (!WordsGameApp.settings.keyboardVisibility) {
+                        if (WordsGameApp.settings.hideKeysInKeyboard) {
                             currentAnswer.word.filterIndexed { index, _ ->
                                 currentAnswer.colorMask[index] == ColorMask.LETTER_NOT_IN_WORD
                             }.forEach { letter ->
@@ -157,18 +150,34 @@ fun MainScreenCompose(
                         }
 
                         attempt.value++
+                        WordsGameApp.state.secretWordAnswer.clear()
+                        WordsGameApp.state.secretWordAnswer.addAll(getBlankString().toMutableStateList())
+
+                    } else {
+                        isSnackBarNeeded.value = true
                     }
-                    Log.d(DEBUG_LOG_TAG, "${secretWordAnswerState.toList()}")
-                } else {
-                    isSnackBarNeeded.value = true
                 }
 
-                secretWordAnswerState.clear()
-                secretWordAnswerState.addAll(getBlankString().toMutableStateList())
             },
-            changeLetter = { index, letter ->
-                secretWordAnswerState[index] =
-                    if (letter == BACKSPACE_LETTER) EMPTY_LETTER else letter
+            changeLetter = { letter ->
+                if (WordsGameApp.state.cellIndex in 0 until WordsGameApp.settings.gameDifficulty) {
+                    onEventHandler(
+                        GameEvent.OnInput(
+                            index = WordsGameApp.state.cellIndex,
+                            input = if (letter == BACKSPACE_LETTER) EMPTY_LETTER else letter
+                        )
+                    )
+
+                    if (letter == BACKSPACE_LETTER) {
+                        if (WordsGameApp.state.cellIndex != 0) {
+                            focusManager.moveFocus(FocusDirection.Left)
+                        }
+                    } else {
+                        if (WordsGameApp.state.cellIndex != WordsGameApp.settings.gameDifficulty - 1) {
+                            focusManager.moveFocus(FocusDirection.Right)
+                        }
+                    }
+                }
             }
         )
     }
@@ -176,7 +185,7 @@ fun MainScreenCompose(
 
 
 @Composable
-private fun CheckIfWin(
+private fun CheckIfGameEnded(
     startNewGame: () -> Unit,
     closeApp: () -> Unit
 ) {
@@ -190,23 +199,17 @@ private fun CheckIfWin(
                     textAboutWord = secretWordDefinition.value,
                     startNewGame = { startNewGame() },
                     closeApp = { closeApp() })
+
+                return
             }
         }
-    }
-}
 
-@Composable
-private fun CheckIfLose(
-    startNewGame: () -> Unit,
-    closeApp: () -> Unit
-) {
-    with(WordsGameApp) {
-        if (state.attempt.value >= settings.attemptNumber || state.attempt.value == ATTEMPT_VALUE_SURRENDER) {
-            state.showDialog.value = true
+        if (attempt.value >= WordsGameApp.settings.attemptNumber || attempt.value == ATTEMPT_VALUE_SURRENDER) {
+            showDialog.value = true
             ShowEndGameDialog(
                 isVictory = false,
-                secretWord = state.secretWord.value.word_letters,
-                textAboutWord = state.secretWordDefinition.value,
+                secretWord = secretWord.value.word_letters,
+                textAboutWord = secretWordDefinition.value,
                 startNewGame = { startNewGame() },
                 closeApp = { closeApp() })
         }
@@ -215,19 +218,26 @@ private fun CheckIfLose(
 
 @Composable
 private fun ShowSnackBar(
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    onEventHandler: (GameEvent) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val message = stringResource(id = R.string.wordNotInDictionaryMessage)
     val actionLabel = stringResource(id = R.string.wordNotInDictionaryActionLabel)
     LaunchedEffect(key1 = isSnackBarNeeded.value) {
         scope.launch {
-            snackBarHostState.showSnackbar(
+            val snackBarResult = snackBarHostState.showSnackbar(
                 message = message,
                 actionLabel = actionLabel,
                 withDismissAction = true,
                 duration = SnackbarDuration.Indefinite
             )
+            when (snackBarResult) {
+                SnackbarResult.Dismissed -> {}
+                SnackbarResult.ActionPerformed -> onEventHandler(
+                    GameEvent.OnSnackBarAddPressed
+                )
+            }
             isSnackBarNeeded.value = false
         }
     }
@@ -242,16 +252,11 @@ private fun BottomControlPanel(
     lettersNotInWord: List<String>,
     isApplyEnable: Boolean,
     checkWord: () -> Unit,
-    changeLetter: (Int, String) -> Unit
+    changeLetter: (String) -> Unit
 ) {
     Column(
         modifier = modifier
-            .advancedShadow(
-                cornersRadius = 16.dp,
-                alpha = 0.5F,
-                shadowBlurRadius = 8.dp,
-                offsetY = (-1).dp,
-            )
+            .advancedShadow(cornersRadius = 16.dp)
             .background(
                 color = MaterialTheme.colorScheme.background,
                 shape = shapeBigTopCornerRadius
@@ -266,7 +271,7 @@ private fun BottomControlPanel(
             lettersInWord = lettersInWord,
             lettersNotInWord = lettersNotInWord,
             onKeyClick = {
-                changeLetter(cellIndex, it)
+                changeLetter(it)
             },
         )
         BottomButtonRow(
@@ -285,11 +290,16 @@ private fun BottomButtonRow(
     isApplyEnable: Boolean,
     checkWord: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     Row(modifier = modifier) {
         SurrenderButton(
             modifier = Modifier
                 .weight(1F)
                 .padding(end = 8.dp),
+            onClick = {
+                focusManager.clearFocus()
+                WordsGameApp.state.attempt.value = ATTEMPT_VALUE_SURRENDER
+            }
         )
 
         ApplyWordButton(
@@ -300,40 +310,5 @@ private fun BottomButtonRow(
             enabled = isApplyEnable
         )
 
-    }
-}
-
-@Composable
-private fun TopAppBar(
-    modifier: Modifier,
-    navigateToToSettings: NavigationFunc
-) {
-    Box(
-        modifier = modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .advancedShadow(
-                alpha = 0.5F,
-                shadowBlurRadius = 8.dp,
-                offsetY = 1.dp,
-            )
-            .background(color = MaterialTheme.colorScheme.onBackground)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .wrapContentWidth(Alignment.Start)
-                .padding(16.dp),
-            text = "Words Game".uppercase()
-        )
-
-        SettingsButton(
-            Modifier
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.End)
-                .padding(8.dp),
-            navigateToToSettings
-        )
     }
 }

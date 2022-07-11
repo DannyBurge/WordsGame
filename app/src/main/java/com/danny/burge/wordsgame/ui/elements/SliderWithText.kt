@@ -1,5 +1,6 @@
 package com.danny.burge.wordsgame.ui.elements
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -12,14 +13,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SliderWithTextValue(
+fun sliderWithTextValue(
     modifier: Modifier,
     range: ClosedFloatingPointRange<Float>,
     defaultValue: Int,
     onValueChanged: () -> Unit
 ): Float {
     var sliderPosition by remember { mutableStateOf(defaultValue.toFloat()) }
-    Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
+    Column(modifier = modifier) {
         Text(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -28,7 +29,7 @@ fun SliderWithTextValue(
         )
         Slider(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             value = sliderPosition,
             valueRange = range,

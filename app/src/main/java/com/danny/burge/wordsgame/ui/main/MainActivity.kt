@@ -1,63 +1,30 @@
 package com.danny.burge.wordsgame.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.navigation.NavController
-import com.danny.burge.wordsgame.app.WordsGameApp
-import com.danny.burge.wordsgame.constants.DEBUG_LOG_TAG
-import com.danny.burge.wordsgame.constants.MAIN_SCREEN
-import com.danny.burge.wordsgame.constants.SETTINGS_SCREEN
+import androidx.navigation.findNavController
+import com.danny.burge.wordsgame.app.AppNavigator
+import com.danny.burge.wordsgame.app.NavigationCommand
+import com.danny.burge.wordsgame.logic.GameEvent
+import com.danny.burge.wordsgame.logic.GameLogic
 import com.danny.burge.wordsgame.ui.main.compose.GameUI
-import com.danny.burge.wordsgame.ui.screens.main.MainScreenViewModel
-import com.danny.burge.wordsgame.ui.screens.settings.SettingsScreenViewModel
 import com.danny.burge.wordsgame.ui.theme.WordsGameTheme
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
-    lateinit var navController: NavController
-
-    private val mainScreenViewModel: MainScreenViewModel by viewModel()
-    private val settingsScreenViewModel: SettingsScreenViewModel by viewModel()
-
+    private val gameLogic: GameLogic by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        settingsScreenViewModel.onAppOpen()
+        gameLogic.onEvent(GameEvent.OnApplicationStarted)
 
         setContent {
             WordsGameTheme {
-                navController =
-                    GameUI(
-                        mainScreenViewModel,
-                        settingsScreenViewModel,
-                        ::startGame,
-                        ::closeApp,
-                        ::goToSettingsScreen,
-                        ::goToMainScreen,
-                    )
+                GameUI(
+                    onEventHandler = gameLogic::onEvent
+                )
             }
         }
-        startGame()
-    }
-
-    private fun startGame() {
-        Log.d(DEBUG_LOG_TAG, "startGame")
-        mainScreenViewModel.startGame()
-    }
-
-    private fun closeApp() {
-        WordsGameApp.state.clear()
-        settingsScreenViewModel.onAppClosed()
-        finishAffinity()
-    }
-
-    private fun goToSettingsScreen() {
-        navController.navigate(SETTINGS_SCREEN)
-    }
-
-    private fun goToMainScreen() {
-        navController.navigate(MAIN_SCREEN)
     }
 }

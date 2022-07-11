@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WordsGame</string>
+    <string name="app_name">Угадай слово</string>
 
     <!--Buttons texts-->
     <string name="applySettingsButton">Применить</string>
@@ -11,6 +11,11 @@
     <string name="loseTitle">ПОРАЖЕНИЕ</string>
     <string name="startNewGame">Новая игра</string>
     <string name="closeDialog">Выход</string>
+
+    <string name="difficultySliderName">Длина слова</string>
+    <string name="attemptsSliderName">Количество попыток</string>
+    <string name="keyboardVisibilityCheckBoxName">Клавиатура</string>
+    <string name="keyboardVisibilityCheckBoxMessage">Скрывать буквы</string>
 
     <string name="wordNotInDictionaryMessage">Этого слова нет в словаре</string>
     <string name="wordNotInDictionaryActionLabel">Добавить</string>

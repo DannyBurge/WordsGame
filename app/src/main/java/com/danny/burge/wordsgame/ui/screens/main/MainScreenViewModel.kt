@@ -27,16 +27,36 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
     private fun getRandomWordByLength(length: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(DEBUG_LOG_TAG, "getRandomWordByLength")
-
-            wordsDataBase =
-                WordsGameApp.wordsDatabase?.wordDAO()?.readAllWithLength(length) ?: listOf()
-
+            getDataBase(length)
             if (wordsDataBase.isNotEmpty()) {
                 val secretWord = wordsDataBase.shuffled().first()
                 WordsGameApp.state.secretWord.value = secretWord
                 Log.d(DEBUG_LOG_TAG, secretWord.word_letters)
                 getWikiArticle(secretWord.word_letters)
             }
+        }
+    }
+
+    private fun getDataBase(length: Int) {
+        wordsDataBase = WordsGameApp.wordsDatabase?.wordDAO()?.readAllWithLength(length) ?: listOf()
+        Log.d(DEBUG_LOG_TAG, "DataBase updated size is ${wordsDataBase.size}")
+    }
+
+    fun updateDataBase(length: Int = WordsGameApp.settings.gameDifficulty) {
+        viewModelScope.launch(Dispatchers.IO) {
+            getDataBase(length)
+        }
+    }
+
+    fun addWordToDatabase() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newWord = WordsGameApp.state.secretWordAnswer.joinToString("").lowercase()
+            WordsGameApp.wordsDatabase?.wordDAO()?.addWord(
+                Word(
+                    word_letters = newWord,
+                    word_size = newWord.length
+                )
+            )
         }
     }
 
@@ -56,23 +76,24 @@ class MainScreenViewModel(private val networkRepository: NetworkRepository) : Vi
     }
 
 
-    fun checkWord(secretWordAnswer: String): Boolean {
+    fun checkWord() {
         with(WordsGameApp.state) {
-            if (secretWordAnswer in wordsDataBase.map { it.word_letters }) {
-                val wordMask = getWordMask(secretWordAnswer)
+            val localAnswer = WordsGameApp.state.secretWordAnswer.joinToString("").lowercase()
+            if (localAnswer in wordsDataBase.map { it.word_letters }) {
+                val wordMask = getWordMask(localAnswer)
                 val isCompletelyOpen = wordMask.all { it == ColorMask.LETTER_ON_SPOT }
                 Log.d(DEBUG_LOG_TAG, "isCompletelyOpen is $isCompletelyOpen")
                 answers.add(
                     Answer(
                         attempt = attempt.value,
-                        word = secretWordAnswer,
+                        word = localAnswer,
                         colorMask = wordMask,
                         isCompletelyOpen = isCompletelyOpen
                     )
                 )
-                return true
+                secretWordAnswerApplied = true
             } else {
-                return false
+                secretWordAnswerApplied = false
             }
         }
     }
